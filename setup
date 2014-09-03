@@ -1,0 +1,22 @@
+# Install ZBar for QR reader
+sudo apt-get install zbar-tools
+
+# Install PyAudio
+sudo apt-get install python-pyaudio
+
+# Install PySerial
+sudo apt-get install python-pip
+sudo pip install pyserial
+
+# Must create /mnt/ramcache/ folder
+mkdir /mnt/ramcache
+
+# Add line to end of fstab to create ramdisk for /mnt/ramcache
+tmpfs           /mnt/ramcache   tmpfs   nodev,nosuid,size=4M 0 0
+
+# Add script into /etc/init.d/ to run python code at boot
+cp qrscanner.sh /etc/init.d
+
+# After adding script, call the update process for boot stuff
+cd /etc/init.d
+sudo update-rc.d qrscanner.sh defaults
