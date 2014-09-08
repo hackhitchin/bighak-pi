@@ -1,23 +1,17 @@
-import arduinoComms
+import sys
+import arduino_comms
 import parseQR
 import qrscanner
-import sys
 import photo
 import audio
 
-#data = sys.stdin.readlines()
-#searchString = '\"command\":\"'
-#commandIndex = data.find(searchString)
-#commandString = ""
-#commandIndex = tempString.find('\",')
-#if (commandIndex != -1):#
-#	commandString = tempString[0:commandIndex]
-
 # Prepare Pi Camrea Module
 try:
-    camera = photo.PrepareCamera()
+    camera = photo.prepare_camera()
 except:
     print("Camera Not Ready")
+
+comm_link = arduino_comms.CommLink(port="/dev/ttyACM0", baud_rate=9600)
 
 ledPinScanning = 23
 
@@ -32,11 +26,10 @@ if (QRCode != ""):
     audio.playSound(10)
 
     # Send command to arduino
-    #print(commandString)
-    arduinoComms.parseCommandString(commandString)
+    # print(commandString)
+    comm_link.parse_command_string(commandString)
 
     # Play stop sound
     audio.playSound(10)
 else:
     print("Not Found")
-

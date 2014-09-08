@@ -5,95 +5,102 @@ import photo
 import os
 import audio
 import parseQR
-import arduinoComms
+import arduino_comms
 
 # GPIO Pin numbers
-buttonPinScan = 22
-buttonPinPower = 5
-buttonPinGo = 27
-buttonPinHorn = 17
-buttonPinManual = 4
+button_pin_scan = 22
+button_pin_power = 5
+button_pin_go = 27
+button_pin_horn = 17
+bbutton_pin_manual = 4
 
-ledPinPower = 18
-ledPinScanning = 23
-ledPinFoundQR = 24
+led_pin_power = 18
+led_pin_scanning = 23
+led_pin_found_qr = 24
 
-#initialise a previous input variable to 0 (assume button not pressed last)
-bFoundQR = False
+# initialise a previous input variable to 0 (assume button not pressed last)
+qr_found = False
 time_stamp = time.time()
 debounce = 0.3
 
-# Prepare Pi Camrea Module
+# Prepare Pi Camera Module
 try:
-    camera = photo.PrepareCamera()
+    camera = photo.prepare_camera()
 except:
     print("Camera Not Ready")
 
+# instantiate CommLink
+comm_link = CommLink(port="/dev/ttyACM0", baud_rate=9600)
+
 # Button States
-PoweredOff = False
-Scanning = False
-Going = False
-Horn = False
-Manual = False
-commandString = ""
+powered_off = False
+scanning = False
+going = False
+horn = False
+manual = False
+command_string = ""
 
 # handle the button event
+
+
 def PowerPressed(pin):
     global time_stamp       # put in to debounce
     global debounce
-    global PoweredOff
-    global Scanning
-    global Going
+    global powered_off
+    global scanning
+    global going
     time_now = time.time()
-    if (time_now - time_stamp) >= debounce and PoweredOff==False and Scanning==False and Going==False:
-        PoweredOff = True
+    if (time_now - time_stamp) >= debounce and powered_off == False and scanning == False and going == False:
+        powered_off = True
         print("Power Button pressed")
         # Turn power LED OFF
-        GPIO.output(ledPinPower, False)
+        GPIO.output(led_pin_power, False)
         # Issue a poweroff command
-        os.system( "poweroff" )
+        os.system("poweroff")
     time_stamp = time_now
 
 # handle the button event
+
+
 def ScanPressed(pin):
     global time_stamp       # put in to debounce
     global debounce
-    global PoweredOff
-    global Scanning
-    global Going
+    global powered_off
+    global scanning
+    global going
     global camera
-    global ledPinScanning
-    global ledPinFoundQR
-    global bFoundQR
-    global commandString
+    global led_pin_scanning
+    global led_pin_found_qr
+    global qr_found
+    global command_string
 
     time_now = time.time()
-    if (time_now - time_stamp) >= debounce and PoweredOff==False and Scanning==False and Going==False:
+    if (time_now - time_stamp) >= debounce and powered_off == False and scanning == False and going == False:
         # Play a sound to show that we are scanning
         audio.playSound(0)
         # Flag that we are scanning
-        Scanning = True
+        scanning = True
         print("Scan Button pressed")
         # Call python script to try and find QR code from webcam image
-        GPIO.output(ledPinScanning, True) # Turn on the "Scanning" LED
-        GPIO.output(ledPinFoundQR, False) # Ensure Found QR LED OFF
+        GPIO.output(led_pin_scanning, True)  # Turn on the "scanning" LED
+        GPIO.output(led_pin_found_qr, False)  # Ensure Found QR LED OFF
 
         # Try to find a QR code from the camera.
-        QRCode = qrscanner.FindQRCode(ledPinScanning, camera, 10)
+        QRCode = qrscanner.FindQRCode(led_pin_scanning, camera, 10)
         if (QRCode != ""):
             # Play sound that we found one
             audio.playSound(10)
 
             # Found a QR Code, Strip out the command portion of the string
-            commandString = parseQR.parseOutCommand(QRCode)
+            command_string = parseQR.parseOutCommand(QRCode)
             # Flag that we found a QR code
-            bFoundQR = True
+            qr_found = True
             # Ensure Found QR LED OFF
-            GPIO.output(ledPinFoundQR, True)
+            GPIO.output(led_pin_found_qr, True)
 
-        # Turn off the "Scanning" LED
-        GPIO.output(ledPinScanning, False)
-        Scanning = False
+        # Turn off the "scanning" LED
+        GPIO.output(led_pin_scanning, False)
+        scanning = False
     time_stamp = time_now
 
 
@@ -101,106 +108,110 @@ def ScanPressed(pin):
 def GoPressed(pin):
     global time_stamp       # put in to debounce
     global debounce
-    global PoweredOff
-    global Scanning
-    global Going
-    global commandString
+    global powered_off
+    global scanning
+    global going
+    global command_string
 
     time_now = time.time()
-    if (time_now - time_stamp) >= debounce and PoweredOff==False and Scanning==False and Going==False:
-        Going = True
+    if (time_now - time_stamp) >= debounce and powered_off == False and scanning == False and going == False:
+        going = True
         print("Go Button pressed")
-        if (bFoundQR == True and commandString != ""):
+        if (qr_found == True and command_string != ""):
             # Play a sound to show that we are scanning
-            audio.playSound(10) # play start sound
+            audio.playSound(10)  # play start sound
 
-            arduinoComms.parseCommandString(commandString)
+            arduino_comms.parsecommand_string(command_string)
 
             # Play sound that we found one
             audio.playSound(10)
 
-            # Success GO operation, turn LED off and flag QR found as FALSE for next go
-            GPIO.output(ledPinFoundQR, False)
-            bFoundQR = False
+            # Success GO operation, turn LED off and flag QR found as FALSE for
+            # next go
+            GPIO.output(led_pin_found_qr, False)
+            qr_found = False
             # Pass command to motor controller here
         else:
             print("No QR Found, scan again please")
-        Going = False
+        going = False
     time_stamp = time_now
 
 
-def HornPressed(pin):
+def hornPressed(pin):
     global time_stamp       # put in to debounce
     global debounce
-    global PoweredOff
-    global Scanning
-    global Going
-    global Horn
+    global powered_off
+    global scanning
+    global going
+    global horn
     time_now = time.time()
-    if (time_now - time_stamp) >= debounce and PoweredOff==False and Scanning==False and Horn==False:
-        Horn = True
-        print("Horn Pressed")
+    if (time_now - time_stamp) >= debounce and powered_off == False and scanning == False and horn == False:
+        horn = True
+        print("horn Pressed")
         audio.playSound(11)
-        Horn = False
+        horn = False
     time_stamp = time_now
-    
 
-def ManualPressed(pin):
+
+def manualPressed(pin):
     global time_stamp       # put in to debounce
     global debounce
-    global PoweredOff
-    global Scanning
-    global Going
-    global Horn
-    global Manual
+    global powered_off
+    global scanning
+    global going
+    global horn
+    global manual
     time_now = time.time()
-    if (time_now - time_stamp) >= debounce and PoweredOff==False and Scanning==False and Horn==False and Manual==False:
-        Manual = True
-        print("Manual Pressed")
+    if (time_now - time_stamp) >= debounce and powered_off == False and scanning == False and horn == False and manual == False:
+        manual = True
+        print("manual Pressed")
         audio.playSound(11)
-        Manual = False
+        manual = False
     time_stamp = time_now
-    
+
 
 def WaitForButton():
     # Advise user what to do
     print "Press button to start scanning"
-    
+
     try:
         # Set GPIO mode and pre-config gpio ports as either IN or OUT
         GPIO.setmode(GPIO.BCM)
-        #print "DEBUG-SetMode"
-        
+        # print "DEBUG-SetMode"
+
         # Setup GPIO port for Buttons, ready for interrupt
-        GPIO.setup(buttonPinPower, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-        GPIO.setup(buttonPinScan, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-        GPIO.setup(buttonPinGo, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-        GPIO.setup(buttonPinHorn, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-        GPIO.setup(buttonPinManual, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+        GPIO.setup(button_pin_power, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+        GPIO.setup(button_pin_scan, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+        GPIO.setup(button_pin_go, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+        GPIO.setup(button_pin_horn, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+        GPIO.setup(bbutton_pin_manual, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
         # Add callbacks for all EXCEPT the power button.
-        GPIO.add_event_detect(buttonPinScan, GPIO.RISING, callback=ScanPressed)
-        GPIO.add_event_detect(buttonPinGo, GPIO.RISING, callback=GoPressed)
-        GPIO.add_event_detect(buttonPinHorn, GPIO.RISING, callback=HornPressed)
-        GPIO.add_event_detect(buttonPinManual, GPIO.RISING, callback=ManualPressed)
-        #print "DEBUG-Setup and Add_Events"
-        
+        GPIO.add_event_detect(
+            button_pin_scan, GPIO.RISING, callback=ScanPressed)
+        GPIO.add_event_detect(button_pin_go, GPIO.RISING, callback=GoPressed)
+        GPIO.add_event_detect(
+            button_pin_horn, GPIO.RISING, callback=hornPressed)
+        GPIO.add_event_detect(
+            bbutton_pin_manual, GPIO.RISING, callback=manualPressed)
+        # print "DEBUG-Setup and Add_Events"
+
         # Setup GPIO ports for LEDs
-        GPIO.setup(ledPinPower, GPIO.OUT)
-        GPIO.setup(ledPinFoundQR, GPIO.OUT)
-        GPIO.setup(ledPinScanning, GPIO.OUT)
-        GPIO.output(ledPinPower, True) # Turn Power LED ON
-        GPIO.output(ledPinFoundQR, False) # Ensure Found QR LED OFF
-        GPIO.output(ledPinScanning, False) # Ensure Scanning LED OFF
-        #print "DEBUG-Setup and Output LEDs"
-              
+        GPIO.setup(led_pin_power, GPIO.OUT)
+        GPIO.setup(led_pin_found_qr, GPIO.OUT)
+        GPIO.setup(led_pin_scanning, GPIO.OUT)
+        GPIO.output(led_pin_power, True)  # Turn Power LED ON
+        GPIO.output(led_pin_found_qr, False)  # Ensure Found QR LED OFF
+        GPIO.output(led_pin_scanning, False)  # Ensure scanning LED OFF
+        # print "DEBUG-Setup and Output LEDs"
+
         # Main wait is for the power button, all other GPIOs are callbacks
-        GPIO.wait_for_edge(buttonPinPower, GPIO.FALLING)
-        PowerPressed(buttonPinPower)
-    
+        GPIO.wait_for_edge(button_pin_power, GPIO.FALLING)
+        PowerPressed(button_pin_power)
+
     except:
         print("Exception Caught")
         GPIO.cleanup()       # clean up GPIO on CTRL+C exit
-    
+
     # Clean up GPIO settings
     GPIO.cleanup()
 

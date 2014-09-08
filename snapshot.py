@@ -1,4 +1,4 @@
 import photo
 
-camera = photo.PrepareCamera()
-photo.TakePhoto(camera, "/mnt/ramcache/snapshot.jpg")
+camera = photo.prepare_camera()
+photo.take_photo(camera, "/mnt/ramcache/snapshot.jpg")
