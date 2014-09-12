@@ -66,10 +66,6 @@ class CommLink:
 
     def parse_command_string(self, command_string):
         nPause = 0.5
-        nIndex = 0
-        command_verb = ' '
-        command_value = 0
-        countString = '' # Initialise count string
         # our commands are always 3 char where:
         # [0] is verb, [1][2] is the value (left padded)
         chunk_length = 3
