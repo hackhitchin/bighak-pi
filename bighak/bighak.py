@@ -108,7 +108,7 @@ class Dashboard:
             GPIO.output(self.led_pin_power, False)
             # Issue a poweroff command
             os.system("poweroff")
-        self._set_timestamp()
+            self._set_timestamp()
 
     def scan_pressed(pin):
         """
@@ -145,7 +145,7 @@ class Dashboard:
             GPIO.output(led_pin_scanning, False)
             # reset scanning flag
             self.scanning = False
-        seld._set_timestamp()
+            self._set_timestamp()
 
     # handle the button event
     def go_pressed(pin):
@@ -172,7 +172,7 @@ class Dashboard:
             else:
                 print("No QR Found, scan again please")
             self.going = False
-        self._set_timestamp()
+            self._set_timestamp()
 
     def horn_pressed(pin):
         """
@@ -183,7 +183,7 @@ class Dashboard:
             print("horn Pressed")
             audio.playSound(11)
             self.horn = False
-        self._set_timestamp()
+            self._set_timestamp()
 
     def manual_pressed(pin):
         """
@@ -194,4 +194,4 @@ class Dashboard:
             print("manual Pressed")
             audio.playSound(11)
             self.manual = False
-        self._set_timestamp()
+            self._set_timestamp()
