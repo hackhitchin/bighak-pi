@@ -89,9 +89,10 @@ class Dashboard:
         # Clean up GPIO settings
         GPIO.cleanup()
 
-    def _is_valid_time():
+    def _passes_sanity_check():
         time_now = time.time()
-        return (time_now - self.time_stamp) >= self.debounce
+        valid_time = (time_now - self.time_stamp) >= self.debounce
+        return valid_time and not self.powered_off and not self.scanning
 
     def _set_timestamp():
         self.time_stamp = time.time()
@@ -101,7 +102,7 @@ class Dashboard:
         """
         Handle Power button press event
         """
-        if self._is_valid_time() and not self.powered_off and not self.scanning and not self.going:
+        if self._passes_sanity_check() and not self.going:
             self.powered_off = True
             print("Power Button pressed")
             # Turn power LED OFF
@@ -114,7 +115,7 @@ class Dashboard:
         """
         Handle Scan button press event
         """
-        if self._is_valid_time() and not self.powered_off and not self.scanning and not self.going:
+        if self._passes_sanity_check() and not self.going:
             # Play a sound to show that we are scanning
             audio.playSound(0)
 
@@ -152,7 +153,7 @@ class Dashboard:
         """
         Handle Go button press event
         """
-        if self._is_valid_time() and not self.powered_off and not self.scanning and not self.going:
+        if self._passes_sanity_check()  and not self.going:
             self.going = True
             print("Go Button pressed")
             if (self.qr_found == True and self.command_string != ""):
@@ -178,7 +179,7 @@ class Dashboard:
         """
         Handle Horn button press event
         """
-        if self._is_valid_time() and not self.powered_off and not self.scanning and not self.horn:
+        if self._passes_sanity_check() and not self.horn:
             self.horn = True
             print("horn Pressed")
             audio.playSound(11)
@@ -189,7 +190,7 @@ class Dashboard:
         """
         Handle Manual button press event
         """
-        if self._is_valid_time() and not self.powered_off and not self.scanning and not self.horn and not self.manual:
+        if self._passes_sanity_check() and not self.horn and not self.manual:
             self.manual = True
             print("manual Pressed")
             audio.playSound(11)
