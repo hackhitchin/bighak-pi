@@ -89,26 +89,32 @@ class Dashboard:
         # Clean up GPIO settings
         GPIO.cleanup()
 
+    def _is_valid_time():
+        time_now = time.time()
+        return (time_now - self.time_stamp) >= self.debounce
+
+    def _set_timestamp():
+        self.time_stamp = time.time()
+
+
     def power_pressed(pin):
         """
         Handle Power button press event
         """
-        time_now = time.time()
-        if (self.time_now - self.time_stamp) >= self.debounce and not self.powered_off and not self.scanning and not self.going:
+        if self._is_valid_time() and not self.powered_off and not self.scanning and not self.going:
             self.powered_off = True
             print("Power Button pressed")
             # Turn power LED OFF
             GPIO.output(self.led_pin_power, False)
             # Issue a poweroff command
             os.system("poweroff")
-        self.time_stamp = self.time_now
+        self._set_timestamp()
 
     def scan_pressed(pin):
         """
         Handle Scan button press event
         """
-        time_now = time.time()
-        if (self.time_now - self.time_stamp) >= self.debounce and not self.powered_off and not self.scanning and not self.going:
+        if self._is_valid_time() and not self.powered_off and not self.scanning and not self.going:
             # Play a sound to show that we are scanning
             audio.playSound(0)
 
@@ -139,15 +145,14 @@ class Dashboard:
             GPIO.output(led_pin_scanning, False)
             # reset scanning flag
             self.scanning = False
-        self.time_stamp = self.time_now
+        seld._set_timestamp()
 
     # handle the button event
     def go_pressed(pin):
         """
         Handle Go button press event
         """
-        time_now = time.time()
-        if (self.time_now - self.time_stamp) >= self.debounce and not self.powered_off and not self.scanning and not self.going:
+        if self._is_valid_time() and not self.powered_off and not self.scanning and not self.going:
             self.going = True
             print("Go Button pressed")
             if (self.qr_found == True and self.command_string != ""):
@@ -167,28 +172,26 @@ class Dashboard:
             else:
                 print("No QR Found, scan again please")
             self.going = False
-        self.time_stamp = time_now
+        self._set_timestamp()
 
     def horn_pressed(pin):
         """
         Handle Horn button press event
         """
-        self.time_now = self.time.time()
-        if (self.time_now - self.time_stamp) >= self.debounce and not self.powered_off and not self.scanning and not self.horn:
+        if self._is_valid_time() and not self.powered_off and not self.scanning and not self.horn:
             self.horn = True
             print("horn Pressed")
             audio.playSound(11)
             self.horn = False
-        self.time_stamp = self.time_now
+        self._set_timestamp()
 
     def manual_pressed(pin):
         """
         Handle Manual button press event
         """
-        self.time_now = self.time.time()
-        if (self.time_now - self.time_stamp) >= self.debounce and not self.powered_off and not self.scanning and not self.horn and not self.manual:
+        if self._is_valid_time() and not self.powered_off and not self.scanning and not self.horn and not self.manual:
             self.manual = True
             print("manual Pressed")
             audio.playSound(11)
             self.manual = False
-        self.time_stamp = self.time_now
+        self._set_timestamp()
