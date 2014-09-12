@@ -10,6 +10,23 @@ class CommLink:
         self.baud_rate = baud_rate
         self.serial_link = serial.Serial(self.port, self.baud_rate)
 
+        self.INTERVAL = 0.5  # In Seconds
+        self.FB_SECONDS = 1.0
+        self.LR_SECONDS = 0.125
+        self.PZ_SECONDS = 0.5
+
+    def _get_command_length(self, command_verb):
+        interval_map = [
+            (['F','B'], FB_SECONDS),
+            (['L','R'], LR_SECONDS),
+            (['P','Z'], PZ_SECONDS),
+        ]
+
+        # generate a list of the 2nd tuple items where the command_verb is present in the first tuple item
+        match_list = [item[1] for item in interval_map if command_verb.upper() in item[0]]
+        # return the first item, or none if any
+        return match_list[0] if match_list else None
+
     def repeat_send(self, command_verb, nSeconds, INTERVAL):
         # Send a single char repeatedly at a specific
         # interval for a specific length of time.
@@ -40,20 +57,12 @@ class CommLink:
         # uppercase the command_verb
         command_verb = command_verb.upper()
 
+        # command interval
+        command_length = self._get_command_length(command_value)
+
         # Simply write to the serial device
-        INTERVAL = 0.5  # In Seconds
-        FB_SECONDS = 1.0
-        LR_SECONDS = 0.125
-        P_SECONDS = 0.5
-        loop = 0
-        while (loop < command_value):
-            if (command_verb.upper() in ['F','B']:
-                self.repeat_send(command_verb, FB_SECONDS, INTERVAL)
-            if (command_verb.upper() in['L', 'R']):
-                self.repeat_send(command_verb, LR_SECONDS, INTERVAL)
-            if (command_verb.upper() in ['P', 'Z']):
-                self.repeat_send(command_verb, P_SECONDS, INTERVAL)
-            loop = loop + 1
+        for i in range(command_value):
+            self.repeat_send(command_verb, command_length, self.INTERVAL)
 
     def parse_command_string(self, command_string):
         nPause = 0.5
