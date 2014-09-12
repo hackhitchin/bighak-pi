@@ -74,33 +74,21 @@ class CommLink:
         # [0] is verb, [1][2] is the value (left padded)
         chunk_length = 3
 
-        command_list = [command_string[i:i+step] for i in
+        command_list = [command_string[i:i+chunk_length] for i in
                         range(0, len(command_string), chunk_length)]
 
-        for c in command_string:
-            if not c.isdigit():
-                if command_verb != ' ':
-                    sleep(nPause)
-                    command_value = int(countString)
-                    self.send_command_string(command_verb, command_value)
-                # 'c' should be the command verb (but not guaranteed, its only NOT A NUMBER)
-                command_verb = c
+        for command in command_list:
+            # decompose command into command_verb & command_value
+            command_verb, command_value = command[:1], command[1:]
 
-                # New command char found, reset count info
-                countString = ''
-                command_value = 0
-            else:
-                # Add int char to int string
-                countString += c
-
-            # If its the final char, send it
-            if nIndex == len(commandString)-1 and command_verb != ' ':
+            # if for some reason we have an incomplete command, 
+            # command value will be a zero length string
+            # in that case, skip it
+            if command_value != "":
+                # pause
                 sleep(nPause)
-                command_value = int(countString)
-                self.send_command_string(command_verb, command_value)
-
-            # Increment loop counter
-            nIndex = nIndex+1
+                #send the command (cast command value to int first)
+                self.send_command_string(command_verb, int(command_value)
 
 
 # Main
