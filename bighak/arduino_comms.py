@@ -65,7 +65,7 @@ class CommLink:
             self.repeat_send(command_verb, command_length, self.INTERVAL)
 
     def parse_command_string(self, command_string):
-        nPause = 0.5
+        pause_length = 0.5
         # our commands are always 3 char where:
         # [0] is verb, [1][2] is the value (left padded)
         chunk_length = 3
@@ -82,7 +82,7 @@ class CommLink:
             # in that case, skip it
             if command_value != "":
                 # pause
-                sleep(nPause)
+                sleep(pause_length)
                 #send the command (cast command value to int first)
                 self.send_command_string(command_verb, int(command_value)
 
