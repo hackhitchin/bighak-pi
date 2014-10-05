@@ -30,14 +30,10 @@ class Dashboard:
         self.debounce = 0.3
 
         # Prepare Pi Camera Module
-        self.camera = None
-        try:
-            self.camera = photo.prepare_camera()
-        except:
-            raise("Camera Not Ready")
+        self.camera = Camera()
 
         # instantiate CommLink
-        comm_link = CommLink(port="/dev/ttyACM0", baud_rate=9600)
+        self.comm_link = CommLink(port="/dev/ttyACM0", baud_rate=9600)
 
         # Button States
         self.powered_off = False
@@ -119,8 +115,9 @@ class Dashboard:
             GPIO.wait_for_edge(self.button_pin_power, GPIO.FALLING)
             self.power_pressed(self.button_pin_power)
 
-        except:
+        except Exception as e:
             print("Exception Caught")
+            print e
             GPIO.cleanup()       # clean up GPIO on CTRL+C exit
 
         # Clean up GPIO settings
@@ -165,21 +162,18 @@ class Dashboard:
             GPIO.output(self.led_pin_found_qr, False)
 
             # Try to find a QR code from the camera.
-            QRCode = qrscanner.FindQRCode(
-                self.led_pin_scanning, self.camera, 10)
-            if (QRCode != ""):
+            qr_code = self.camera.find_qr_code()
+            if (qr_code != ""):
                 # Play sound that we found one
                 audio.playSound(10)
 
-                # Found a QR Code, Strip out the command portion of the string
-                command_string = parseQR.parseOutCommand(QRCode)
                 # Flag that we found a QR code
-                qr_found = True
+                self.qr_found = True
                 # Ensure Found QR LED OFF
-                GPIO.output(led_pin_found_qr, True)
+                GPIO.output(self.led_pin_found_qr, True)
 
             # Turn off the "scanning" LED
-            GPIO.output(led_pin_scanning, False)
+            GPIO.output(self.led_pin_scanning, False)
             # reset scanning flag
             self.scanning = False
             self._set_timestamp()
@@ -192,18 +186,18 @@ class Dashboard:
         if self._passes_sanity_check() and not self.going:
             self.going = True
             print("Go Button pressed")
-            if (self.qr_found == True and self.command_string != ""):
+            if (self.qr_found and self.command_string != ""):
                 # Play a sound to show that we are scanning
                 audio.playSound(10)  # play start sound
 
-                self.comm_link.parsecommand_string(command_string)
+                self.comm_link.parsecommand_string(self.command_string)
 
                 # Play sound that we found one
                 audio.playSound(10)
 
-                # Success GO operation, turn LED off and flag QR found as FALSE for
-                # next go
-                GPIO.output(led_pin_found_qr, False)
+                # Success GO operation, turn LED off and flag QR found
+                # as FALSE for next go
+                GPIO.output(self.led_pin_found_qr, False)
                 self.qr_found = False
                 # Pass command to motor controller here
             else:
@@ -240,8 +234,8 @@ class Camera:
         # get handle on pi camera
         self.cam = picamera.PiCamera()
 
-        self.filepath = os.join(
-            [self.location, "{0}.{1}".format(filename, "jpg")])
+        self.filepath = os.path.join(
+            [location, "{0}.{1}".format(filename, "jpg")])
 
     def capture(self):
         """
@@ -295,7 +289,7 @@ class CommLink:
     def __init__(self, port=None, baud_rate=9600):
         self.serial_port = port
         self.baud_rate = baud_rate
-        self.serial_link = serial.Serial(self.port, self.baud_rate)
+        self.serial_link = serial.Serial(self.serial_port, self.baud_rate)
 
         self.INTERVAL = 0.5  # In Seconds
         self.FB_SECONDS = 1.0
