@@ -1,14 +1,13 @@
 import serial
 from time import sleep
 import audio
-from datetime import datetime
 
 
 class CommLink:
     def __init__(self, port=None, baud_rate=9600):
         self.serial_port = port
         self.baud_rate = baud_rate
-        self.serial_link = serial.Serial(self.port, self.baud_rate)
+        self.serial_link = serial.Serial(self.serial_port, self.baud_rate)
 
         self.INTERVAL = 0.5  # In Seconds
         self.FB_SECONDS = 1.0
@@ -17,13 +16,15 @@ class CommLink:
 
     def _get_command_length(self, command_verb):
         interval_map = [
-            (['F','B'], FB_SECONDS),
-            (['L','R'], LR_SECONDS),
-            (['P','Z'], PZ_SECONDS),
+            (['F', 'B'], self.FB_SECONDS),
+            (['L', 'R'], self.LR_SECONDS),
+            (['P', 'Z'], self.PZ_SECONDS),
         ]
 
-        # generate a list of the 2nd tuple items where the command_verb is present in the first tuple item
-        match_list = [item[1] for item in interval_map if command_verb.upper() in item[0]]
+        # generate a list of the 2nd tuple items where the
+        # command_verb is present in the first tuple item
+        match_list = [item[1] for item in interval_map if
+                      command_verb.upper() in item[0]]
         # return the first item, or none if any
         return match_list[0] if match_list else None
 
@@ -77,18 +78,18 @@ class CommLink:
             # decompose command into command_verb & command_value
             command_verb, command_value = command[:1], command[1:]
 
-            # if for some reason we have an incomplete command, 
+            # if for some reason we have an incomplete command,
             # command value will be a zero length string
             # in that case, skip it
             if command_value != "":
                 # pause
                 sleep(pause_length)
                 #send the command (cast command value to int first)
-                self.send_command_string(command_verb, int(command_value)
+                self.send_command_string(command_verb, int(command_value))
 
 
 # Main
-if __name__== "__main__":
+if __name__ == "__main__":
     comm_link = CommLink(port="/dev/ttyACM0", baud_rate=9600)
     command_string = raw_input("enter command string:")
     comm_link.parse_command_string(command_string)

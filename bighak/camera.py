@@ -4,13 +4,14 @@ import json
 import time
 import subprocess
 
+
 class Camera:
 
     def __init__(self, location='/mnt/ramcache/', filename="qrtest"):
         # get handle on pi camera
         self.cam = picamera.PiCamera()
-
-        self.filepath = os.join([self.location, "{0}.{1}".format(filename, "jpg")])
+        full_filename = "{0}.{1}".format(filename, "jpg")
+        self.filepath = os.join([self.location, full_filename])
 
     def capture(self):
         """
@@ -30,7 +31,8 @@ class Camera:
             self.capture()
 
             # pass it to zbarimg to attempt to read qr code
-            process = subprocess.Popen(["zbarimg -q -D {0}".format(self.filepath)],
+            cmd = "zbarimg -q -D {0}".format(self.filepath)
+            process = subprocess.Popen([cmd],
                                        stdout=subprocess.PIPE,
                                        shell=True)
             out, err = process.communicate()

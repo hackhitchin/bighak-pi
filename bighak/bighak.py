@@ -111,15 +111,18 @@ class Dashboard:
                 False)
             # print "DEBUG-Setup and Output LEDs"
 
-            # Main wait is for the power button, all other GPIOs are callbacks
-            GPIO.wait_for_edge(self.button_pin_power, GPIO.FALLING)
-            self.power_pressed(self.button_pin_power)
-
         except Exception as e:
-            print("Exception Caught")
+            print("Could not initialise Dashboard:")
             print e
-            GPIO.cleanup()       # clean up GPIO on CTRL+C exit
+            # clean up GPIO on CTRL+C exit
+            self.shut_down()
 
+    def start(self):
+        # Main wait is for the power button, all other GPIOs are callbacks
+        GPIO.wait_for_edge(self.button_pin_power, GPIO.FALLING)
+        self.power_pressed(self.button_pin_power)
+
+    def shut_down(self):
         # Clean up GPIO settings
         GPIO.cleanup()
 
