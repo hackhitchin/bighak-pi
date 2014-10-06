@@ -2,4 +2,7 @@ from bighak.bighak import Dashboard
 
 dashboard = Dashboard()
 
-dashboard.start()
+try:
+    dashboard.start()
+except:
+    dashboard.shut_down()
