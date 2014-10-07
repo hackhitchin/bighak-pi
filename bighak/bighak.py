@@ -26,6 +26,7 @@ class Dashboard:
         # initialise a previous input variable to 0 (assume button not pressed
         # last)
         self.qr_found = False
+        self.qr_code = None
         self.time_stamp = time.time()
         self.debounce = 0.3
 
@@ -41,7 +42,6 @@ class Dashboard:
         self.going = False
         self.horn = False
         self.manual = False
-        self.qr_code = ""
 
         try:
             # Set GPIO mode and pre-config gpio ports as either IN or OUT
@@ -210,7 +210,7 @@ class Dashboard:
                 # flag QR foundas False
                 # Blank out qr_code
                 self.qr_found = False
-                self.qr_code = ''
+                self.qr_code = None
             else:
                 print("No QR Found, scan again please")
             self.going = False
