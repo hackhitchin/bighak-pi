@@ -10,7 +10,7 @@ from arduino_comms import CommLink
 
 class Dashboard:
 
-    def __init__(self):
+    def __init__(self, serial_port='/dev/ttyACM0'):
 
         # GPIO Pin numbers
         self.button_pin_scan = 22
@@ -33,7 +33,7 @@ class Dashboard:
         self.camera = Camera()
 
         # instantiate CommLink
-        self.comm_link = CommLink(port="/dev/ttyACM0", baud_rate=9600)
+        self.comm_link = CommLink(port=serial_port, baud_rate=9600)
 
         # Button States
         self.powered_off = False
