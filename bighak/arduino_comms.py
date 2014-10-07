@@ -34,7 +34,7 @@ class CommLink:
         # Have to play fireing sound here as it sounds as it lights LED
         if (command_verb == 'P'):
             # Play a sound to show that we are scanning
-            audio.playSound(11)
+            audio.play_sound(11)
 
         if (command_verb == 'Z'):
             LASER_REPEATS = 5
@@ -42,7 +42,7 @@ class CommLink:
             print(command_verb * LASER_REPEATS)
             self.serial_link.write('Z' * LASER_REPEATS)
             # Play sound
-            audio.playSound(11)
+            audio.play_sound(11)
             # Lower case 'z' to turn LED OFF
             serial.write('z' * LASER_REPEATS)
             print('z' * LASER_REPEATS)

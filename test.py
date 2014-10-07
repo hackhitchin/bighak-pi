@@ -23,13 +23,13 @@ if (QRCode != ""):
     commandString = parseQR.parseOutCommand(QRCode)
 
     # Play start sound
-    audio.playSound(10)
+    audio.play_sound(10)
 
     # Send command to arduino
     # print(commandString)
     comm_link.parse_command_string(commandString)
 
     # Play stop sound
-    audio.playSound(10)
+    audio.play_sound(10)
 else:
     print("Not Found")

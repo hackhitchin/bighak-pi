@@ -1,26 +1,28 @@
+import os
 import subprocess
 
 
 def get_sound_url(sound_id):
     #TODO - remove hard coding here and make relative to module path
-    basePath = "/home/pi/qrscanner/audio/"
+    base_path = "/home/pi/qrscanner/bighak/audio/"
+    filename = "high-key.wav"
     if 0 <= sound_id <= 3:
-        return basePath+"key-0-3.wav"
+        filename = "key-0-3.wav"
     elif 4 <= sound_id <= 6:
-        return basePath+"key-4-6.wav"
+        filename = "key-4-6.wav"
     elif 7 <= sound_id <= 9:
-        return basePath+"key-7-9.wav"
+        filename = "key-7-9.wav"
     elif sound_id == 10:
-        return basePath+"start.wav"
+        filename = "start.wav"
     elif sound_id == 11:
-        return basePath+"pew.wav"
+        filename = "pew.wav"
     elif sound_id == 12:
-        return basePath+"key-command.wav"
-    else:
-        return basePath+"high-key.wav"
+        filename = "key-command.wav"
+
+    return os.path.join(base_path, filename)
 
 
-def playSound(sound_id):
+def play_sound(sound_id):
     cmd = "aplay -q "+get_sound_url(sound_id)
     process = subprocess.Popen([cmd], stdout=subprocess.PIPE, shell=True)
     (out, err) = process.communicate()

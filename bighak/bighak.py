@@ -171,7 +171,7 @@ class Dashboard:
             # Set timestamp to avoid multiple scans
             self._set_timestamp()
             # Play a sound to show that we are scanning
-            audio.playSound(0)
+            audio.play_sound(0)
 
             # Flag that we are scanning
             self.scanning = True
@@ -186,7 +186,7 @@ class Dashboard:
             self.qr_code = self.camera.find_qr_code()
             if self.qr_code:
                 # Play sound that we found one
-                audio.playSound(10)
+                audio.play_sound(10)
                 # Flag that we found a QR code
                 self.qr_found = True
                 # Ensure Found QR LED OFF
@@ -209,10 +209,10 @@ class Dashboard:
             print("Go Button pressed")
             if (self.qr_found and self.qr_code != ""):
                 # Play a sound to show that we are scanning
-                audio.playSound(10)  # play start sound
+                audio.play_sound(10)  # play start sound
 
                 # Play sound that we found one
-                audio.playSound(10)
+                audio.play_sound(10)
 
                 # Success GO operation, turn LED off
                 GPIO.output(self.led_pin_found_qr, False)
@@ -234,7 +234,7 @@ class Dashboard:
         if self._passes_sanity_check() and not self.horn:
             self.horn = True
             print("horn Pressed")
-            audio.playSound(11)
+            audio.play_sound(11)
             self.horn = False
             self._set_timestamp()
 
@@ -245,7 +245,7 @@ class Dashboard:
         if self._passes_sanity_check() and not self.horn and not self.manual:
             self.manual = True
             print("manual Pressed")
-            audio.playSound(11)
+            audio.play_sound(11)
             self.manual = False
             self._set_timestamp()
 
