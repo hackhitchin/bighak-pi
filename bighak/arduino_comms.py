@@ -28,10 +28,10 @@ class CommLink:
         # return the first item, or none if any
         return match_list[0] if match_list else None
 
-    def repeat_send(self, command_verb, nSeconds, INTERVAL):
+    def repeat_send(self, command_verb, num_seconds):
         # Send a single char repeatedly at a specific
         # interval for a specific length of time.
-        # Have to play fireing sound here as it sounds as it lights LED
+        # Have to play firing sound here as it sounds as it lights LED
         if (command_verb == 'P'):
             # Play a sound to show that we are scanning
             audio.play_sound(11)
@@ -44,15 +44,14 @@ class CommLink:
             # Play sound
             audio.play_sound(11)
             # Lower case 'z' to turn LED OFF
-            serial.write('z' * LASER_REPEATS)
+            self.serial_link.write('z' * LASER_REPEATS)
             print('z' * LASER_REPEATS)
             sleep(0.3)
         else:
-            while (nSeconds > 0.0):
+            for step in xrange(num_seconds, 0, self.INTERVAL):
                 print(command_verb)
                 self.serial_link.write(command_verb)
-                sleep(INTERVAL)
-                nSeconds = nSeconds - INTERVAL
+                sleep(self.INTERVAL)
 
     def send_command_string(self, command_verb, command_value):
         # uppercase the command_verb
@@ -62,8 +61,8 @@ class CommLink:
         command_length = self._get_command_length(command_value)
 
         # Simply write to the serial device
-        for i in range(command_value):
-            self.repeat_send(command_verb, command_length, self.INTERVAL)
+        for i in xrange(command_value):
+            self.repeat_send(command_verb, command_length)
 
     def parse_command_string(self, command_string):
         pause_length = 0.5
