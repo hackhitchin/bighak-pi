@@ -41,7 +41,7 @@ class Dashboard:
         self.going = False
         self.horn = False
         self.manual = False
-        self.command_string = ""
+        self.qr_code = ""
 
         try:
             # Set GPIO mode and pre-config gpio ports as either IN or OUT
@@ -172,12 +172,10 @@ class Dashboard:
             GPIO.output(self.led_pin_found_qr, False)
 
             # Try to find a QR code from the camera.
-            qr_code = self.camera.find_qr_code()
-            if qr_code:
+            self.qr_code = self.camera.find_qr_code()
+            if self.qr_code:
                 # Play sound that we found one
                 audio.playSound(10)
-                #store it
-                self.command_string = qr_code
                 # Flag that we found a QR code
                 self.qr_found = True
                 # Ensure Found QR LED OFF
@@ -198,20 +196,21 @@ class Dashboard:
         if self._passes_sanity_check() and not self.going:
             self.going = True
             print("Go Button pressed")
-            if (self.qr_found and self.command_string != ""):
+            if (self.qr_found and self.qr_code != ""):
                 # Play a sound to show that we are scanning
                 audio.playSound(10)  # play start sound
-
-                self.comm_link.parse_command_string(self.command_string)
 
                 # Play sound that we found one
                 audio.playSound(10)
 
-                # Success GO operation, turn LED off and flag QR found
-                # as FALSE for next go
+                # Success GO operation, turn LED off
                 GPIO.output(self.led_pin_found_qr, False)
-                self.qr_found = False
                 # Pass command to motor controller here
+                self.comm_link.parse_command_string(self.qr_code['command'])
+                # flag QR foundas False
+                # Blank out qr_code
+                self.qr_found = False
+                self.qr_code = ''
             else:
                 print("No QR Found, scan again please")
             self.going = False
