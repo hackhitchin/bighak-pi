@@ -2,6 +2,7 @@ import subprocess
 
 
 def get_sound_url(sound_id):
+    #TODO - remove hard coding here and make relative to module path
     basePath = "/home/pi/qrscanner/audio/"
     if 0 <= sound_id <= 3:
         return basePath+"key-0-3.wav"

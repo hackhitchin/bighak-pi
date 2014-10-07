@@ -9,7 +9,10 @@ from arduino_comms import CommLink
 
 
 class Dashboard:
-
+    """
+    Dashboard class - provides the software interface to the hardware control
+    surface of bighak. Sets up GPIO pins and callback actions
+    """
     def __init__(self, serial_port='/dev/ttyACM0', baud_rate=9600):
 
         # GPIO Pin numbers
@@ -131,6 +134,14 @@ class Dashboard:
         GPIO.cleanup()
 
     def _passes_sanity_check(self):
+        """
+        Basic sanity checks for all callbacks:
+        Tests:
+        * that a minimum period has passed since last call of any kind
+        * we're is not powering off
+        * we're not actively scanning for a QR code
+
+        """
         time_now = time.time()
         valid_time = (time_now - self.time_stamp) >= self.debounce
         return valid_time and not self.powered_off and not self.scanning
@@ -240,18 +251,23 @@ class Dashboard:
 
 
 class Camera:
+    """
+    Camera class - This is a wrapper to the picamera class, and handles
+    the capturing of images, as well as the identification of QR codes and
+    parsing of the JSON object within.
+    """
 
     def __init__(self, location='/mnt/ramcache/', filename="qrtest"):
         # get handle on pi camera
         self.cam = picamera.PiCamera()
-
+        # Set the filepath to save images to
         self.filepath = os.path.join(
             location, "{0}.{1}".format(filename, "jpg"))
 
     def capture(self):
         """
         Take a single photo with the camera
-        git add"""
+        """
         self.cam.capture(self.filepath)
 
     def find_qr_code(self, tries=10):
