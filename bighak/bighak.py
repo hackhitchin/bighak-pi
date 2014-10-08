@@ -1,4 +1,5 @@
 import RPi.GPIO as GPIO
+import logging
 import time
 import os
 import audio
@@ -49,7 +50,6 @@ class Dashboard:
         try:
             # Set GPIO mode and pre-config gpio ports as either IN or OUT
             GPIO.setmode(GPIO.BCM)
-            # print "DEBUG-SetMode"
 
             # Setup GPIO port for Buttons, ready for interrupt
             GPIO.setup(
@@ -88,7 +88,6 @@ class Dashboard:
                 self.button_pin_manual,
                 GPIO.RISING,
                 callback=self.manual_pressed)
-            # print "DEBUG-Setup and Add_Events"
 
             # Setup GPIO ports for LEDs
             GPIO.setup(
@@ -112,11 +111,9 @@ class Dashboard:
             GPIO.output(
                 self.led_pin_scanning,
                 False)
-            # print "DEBUG-Setup and Output LEDs"
 
-        except Exception as e:
-            print("Could not initialise Dashboard:")
-            print e
+        except Exception:
+            logging.EXCEPTION("Could not initialise Dashboard:")
             # clean up GPIO on CTRL+C exit
             self.shut_down()
 
@@ -130,7 +127,7 @@ class Dashboard:
 
     def shut_down(self):
         # Clean up GPIO settings
-        print("shutting down GPIO")
+        logging.INFO("shutting down GPIO")
         GPIO.cleanup()
 
     def _passes_sanity_check(self):
@@ -155,7 +152,7 @@ class Dashboard:
         """
         if self._passes_sanity_check() and not self.going:
             self.powered_off = True
-            print("Power Button pressed")
+            logging.INFO("Power Button pressed")
             # Turn power LED OFF
             GPIO.output(self.led_pin_power, False)
             # Issue a poweroff command
@@ -166,7 +163,6 @@ class Dashboard:
         """
         Handle Scan button press event
         """
-        print self._passes_sanity_check() and not self.going
         if self._passes_sanity_check() and not self.going:
             # Set timestamp to avoid multiple scans
             self._set_timestamp()
@@ -175,7 +171,7 @@ class Dashboard:
 
             # Flag that we are scanning
             self.scanning = True
-            print("Scan Button pressed")
+            logging.INFO("Scan Button pressed")
 
             # Turn on the "scanning" LED
             GPIO.output(self.led_pin_scanning, True)
@@ -192,7 +188,7 @@ class Dashboard:
                 # Ensure Found QR LED OFF
                 GPIO.output(self.led_pin_found_qr, True)
             else:
-                print("Couldn't find a QR code")
+                logging.INFO("Couldn't find a QR code")
 
             # Turn off the "scanning" LED
             GPIO.output(self.led_pin_scanning, False)
@@ -206,7 +202,7 @@ class Dashboard:
         """
         if self._passes_sanity_check() and not self.going:
             self.going = True
-            print("Go Button pressed")
+            logging.INFO("Go Button pressed")
             if (self.qr_found and self.qr_code != ""):
                 # Play a sound to show that we are scanning
                 audio.play_sound(10)  # play start sound
@@ -223,7 +219,7 @@ class Dashboard:
                 self.qr_found = False
                 self.qr_code = None
             else:
-                print("No QR Found, scan again please")
+                logging.INFO("No QR Found, scan again please")
             self.going = False
             self._set_timestamp()
 
@@ -233,7 +229,7 @@ class Dashboard:
         """
         if self._passes_sanity_check() and not self.horn:
             self.horn = True
-            print("horn Pressed")
+            logging.INFO("horn Pressed")
             audio.play_sound(11)
             self.horn = False
             self._set_timestamp()
@@ -244,7 +240,7 @@ class Dashboard:
         """
         if self._passes_sanity_check() and not self.horn and not self.manual:
             self.manual = True
-            print("manual Pressed")
+            logging.INFO("manual Pressed")
             audio.play_sound(11)
             self.manual = False
             self._set_timestamp()
@@ -275,11 +271,11 @@ class Camera:
         Attempt to capture a photo and parse a QR code from it.
         returns None or string
         """
-        print "Attempting to capture QR code"
+        logging.INFO("Attempting to capture QR code")
 
         for i in range(tries):
             # grab a photo from the camera
-            print "Attempt {0}:".format(i)
+            logging.DEBUG("Attempt {0}:".format(i))
             self.capture()
 
             # pass it to zbarimg to attempt to read qr code
@@ -288,7 +284,7 @@ class Camera:
                 stdout=subprocess.PIPE,
                 shell=True)
             (out, err) = process.communicate()
-            print "zbarimg output: {0}".format(out)
+            logging.DEBUG("zbarimg output: {0}".format(out))
             # out looks like "QR-code: Xuz213asdY" so you need
             # to remove first 8 characters plus whitespaces
             if len(out) > 8:
@@ -296,10 +292,10 @@ class Camera:
 
             # Couldn't parse a qr code
             # sleep and retry
-            print("No QR code found - sleeping")
+            logging.DEBUG("No QR code found - sleeping")
             time.sleep(1)
 
-        print "Couldn't parse QR code - bailing"
+        logging.INFO("Couldn't parse QR code - bailing")
         return None
 
     def parse_out_command(self, qr_code_content):
@@ -309,5 +305,7 @@ class Camera:
         try:
             return json.loads(qr_code_content)
         except ValueError:
-            print "Couldn't parse instruction as valid JSON"
+            err_msg = "Couldn't parse instruction as valid JSON: {0}"\
+                .format(qr_code_content)
+            logging.ERROR(err_msg)
             return None

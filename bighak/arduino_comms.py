@@ -1,3 +1,4 @@
+import logging
 import serial
 from time import sleep
 import audio
@@ -39,17 +40,19 @@ class CommLink:
         if (command_verb == 'Z'):
             LASER_REPEATS = 5
             # Uppercase 'Z' to turn LED ON
-            print(command_verb * LASER_REPEATS)
+            laser_on = command_verb.upper() * LASER_REPEATS
+            laser_off = laser_on.lower()
+            logging.DEBUG("Laser command - sending ON: {0}".format(laser_on))
             self.serial_link.write('Z' * LASER_REPEATS)
             # Play sound
             audio.play_sound(11)
             # Lower case 'z' to turn LED OFF
             self.serial_link.write('z' * LASER_REPEATS)
-            print('z' * LASER_REPEATS)
+            logging.DEBUG("Laser command - sending OFF: {0}".format(laser_off))
             sleep(0.3)
         else:
             for step in xrange(num_seconds, 0, self.INTERVAL):
-                print(command_verb)
+                logging.DEBUG("Sending step command: {0}".format(command_verb))
                 self.serial_link.write(command_verb)
                 sleep(self.INTERVAL)
 
