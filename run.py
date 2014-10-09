@@ -16,9 +16,12 @@ handler = logging.handlers.RotatingFileHandler(LOG_FILENAME,
                                                )
 my_logger.addHandler(handler)
 
+# Create an instanceof the dashboard
 dashboard = Dashboard()
 
+# Attempt to start up the dashboard
 try:
     dashboard.start()
 except:
+    # It failed - let's clean up
     dashboard.shut_down()
